@@ -5,17 +5,84 @@ generator client {
 }
 
 datasource db {
-    provider = "mysql"
+  provider = "mysql"
 }
 
+enum InventoryStatus {
+  IN_STOCK
+  OUT_OF_STOCK
+  ON_ORDER
+}
 
 model Product {
-  id          Int      @id @default(autoincrement())
-  name       String
+  id          Int           @id @default(autoincrement())
+  name        String
+  slug        String        @unique
   description String?
-  price       Int
-  imageUrl    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  price       Decimal       @db.Decimal(12, 2)
+  isActive    Boolean       @default(true)
+  categoryId  Int
+  unitId      Int
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  category    Category      @relation(fields: [categoryId], references: [id])
+  unit        Unit          @relation(fields: [unitId], references: [id])
+  images      ProductImage[]
+  inventory   Inventory?
+
+  @@index([name])
+  @@index([categoryId])
+  @@index([unitId])
+  @@index([isActive])
+  @@index([price])
 }
 
+model Category {
+  id        Int        @id @default(autoincrement())
+  name      String
+  slug      String     @unique
+  parentId  Int?
+  isActive  Boolean    @default(true)
+  sortOrder Int        @default(0)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  parent    Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryTree")
+  products  Product[]
+
+  @@index([parentId])
+  @@index([isActive])
+}
+
+model Unit {
+  id        Int       @id @default(autoincrement())
+  name      String
+  shortName String
+  isActive  Boolean   @default(true)
+  sortOrder Int       @default(0)
+
+  products  Product[]
+}
+
+model ProductImage {
+  id        Int     @id @default(autoincrement())
+  productId Int
+  url       String
+  alt       String?
+  sortOrder Int     @default(0)
+  isMain    Boolean @default(false)
+
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@index([productId])
+}
+
+model Inventory {
+  productId Int             @id
+  quantity  Int             @default(0)
+  status    InventoryStatus @default(IN_STOCK)
+
+  product   Product         @relation(fields: [productId], references: [id])
+}

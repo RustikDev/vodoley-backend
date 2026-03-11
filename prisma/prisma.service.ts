@@ -8,14 +8,21 @@ export class PrismaService
   implements OnModuleInit, OnModuleDestroy
 {
   constructor() {
+    const databaseUrl = process.env.DATABASE_URL;
+    if (!databaseUrl) {
+      throw new Error('DATABASE_URL is not set');
+    }
+
+    const url = new URL(databaseUrl);
     const adapter = new PrismaMariaDb({
-      host: '127.127.126.50',
-      port: 3306,
+      host: url.hostname,
+      port: Number(url.port || 3306),
       connectionLimit: 5,
-      user: 'root',
-      password: '',
-      database: 'vodoley_db',
+      user: decodeURIComponent(url.username),
+      password: decodeURIComponent(url.password),
+      database: url.pathname.replace(/^\//, ''),
     });
+
     super({ adapter });
   }
 

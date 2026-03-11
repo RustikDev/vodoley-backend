@@ -2,24 +2,91 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { ProductQueryDto } from './dto/product-query.dto';
+import { Prisma } from 'src/generated/prisma/client';
 
 @Injectable()
 export class ProductService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createProductDto: CreateProductDto) {
-    console.log('DTO in create:', createProductDto);
     return await this.prisma.product.create({ data: createProductDto });
   }
 
-  async findAll() {
-    return await this.prisma.product.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
+  async findAll(query: ProductQueryDto) {
+    const page = query.page ?? 1;
+    const pageSize = query.pageSize ?? 20;
+    const skip = (page - 1) * pageSize;
+
+    const where: Prisma.ProductWhereInput = {
+      isActive: true,
+    };
+
+    if (query.q) {
+      where.OR = [
+        { name: { contains: query.q, mode: 'insensitive' } },
+        { description: { contains: query.q, mode: 'insensitive' } },
+      ];
+    }
+
+    if (query.categoryId) {
+      where.categoryId = query.categoryId;
+    }
+
+    if (query.unitId) {
+      where.unitId = query.unitId;
+    }
+
+    if (query.minPrice !== undefined || query.maxPrice !== undefined) {
+      const price: Prisma.DecimalFilter = {};
+      if (query.minPrice !== undefined) price.gte = query.minPrice;
+      if (query.maxPrice !== undefined) price.lte = query.maxPrice;
+      where.price = price;
+    }
+
+    if (query.inStock === true) {
+      where.inventory = {
+        is: {
+          quantity: { gt: 0 },
+          status: 'IN_STOCK',
+        },
+      };
+    }
+
+    let orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: 'desc' };
+    if (query.sort === 'price_asc') orderBy = { price: 'asc' };
+    if (query.sort === 'price_desc') orderBy = { price: 'desc' };
+    if (query.sort === 'newest') orderBy = { createdAt: 'desc' };
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        where,
+        orderBy,
+        skip,
+        take: pageSize,
+        include: {
+          images: { orderBy: { sortOrder: 'asc' } },
+          unit: true,
+          category: true,
+          inventory: true,
+        },
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+
+    return { items, total, page, pageSize };
   }
 
   async findOne(id: number) {
-    const product = await this.prisma.product.findUnique({ where: { id } });
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+      include: {
+        images: { orderBy: { sortOrder: 'asc' } },
+        unit: true,
+        category: true,
+        inventory: true,
+      },
+    });
     if (!product)
       throw new NotFoundException(`Product with id ${id} not found`);
     return product;
