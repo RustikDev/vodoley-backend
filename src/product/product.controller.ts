@@ -33,6 +33,11 @@ export class ProductController {
     return this.productService.findOne(id);
   }
 
+  @Get(':id/recommendations')
+  recommendations(@Param('id', ParseIntPipe) id: number) {
+    return this.productService.getRecommendations(id);
+  }
+
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,

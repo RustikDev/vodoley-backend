@@ -92,6 +92,31 @@ export class ProductService {
     return product;
   }
 
+  async getRecommendations(id: number) {
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+      select: { id: true, categoryId: true },
+    });
+    if (!product)
+      throw new NotFoundException(`Product with id ${id} not found`);
+
+    return await this.prisma.product.findMany({
+      where: {
+        isActive: true,
+        categoryId: product.categoryId,
+        id: { not: product.id },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 6,
+      include: {
+        images: { orderBy: { sortOrder: 'asc' } },
+        unit: true,
+        category: true,
+        inventory: true,
+      },
+    });
+  }
+
   async update(id: number, updateProductDto: UpdateProductDto) {
     await this.findOne(id);
     return await this.prisma.product.update({
