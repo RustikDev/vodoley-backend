@@ -10,7 +10,21 @@ export class ProductService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createProductDto: CreateProductDto) {
-    return await this.prisma.product.create({ data: createProductDto });
+    const { images, inventory, ...data } = createProductDto;
+
+    return await this.prisma.product.create({
+      data: {
+        ...data,
+        images: images ? { create: images } : undefined,
+        inventory: inventory ? { create: inventory } : undefined,
+      },
+      include: {
+        images: { orderBy: { sortOrder: 'asc' } },
+        unit: true,
+        category: true,
+        inventory: true,
+      },
+    });
   }
 
   async findAll(query: ProductQueryDto) {
@@ -78,6 +92,18 @@ export class ProductService {
     return { items, total, page, pageSize };
   }
 
+  async findAllAdmin() {
+    return await this.prisma.product.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        images: { orderBy: { sortOrder: 'asc' } },
+        unit: true,
+        category: true,
+        inventory: true,
+      },
+    });
+  }
+
   async findOne(id: number) {
     const product = await this.prisma.product.findUnique({
       where: { id },
@@ -120,9 +146,37 @@ export class ProductService {
 
   async update(id: number, updateProductDto: UpdateProductDto) {
     await this.findOne(id);
-    return await this.prisma.product.update({
-      where: { id },
-      data: updateProductDto,
+
+    const { images, inventory, ...data } = updateProductDto as CreateProductDto;
+
+    return await this.prisma.$transaction(async (tx) => {
+      if (images) {
+        await tx.productImage.deleteMany({ where: { productId: id } });
+        if (images.length > 0) {
+          await tx.productImage.createMany({
+            data: images.map((img) => ({ ...img, productId: id })),
+          });
+        }
+      }
+
+      if (inventory) {
+        await tx.inventory.upsert({
+          where: { productId: id },
+          create: { ...inventory, productId: id },
+          update: inventory,
+        });
+      }
+
+      return tx.product.update({
+        where: { id },
+        data,
+        include: {
+          images: { orderBy: { sortOrder: 'asc' } },
+          unit: true,
+          category: true,
+          inventory: true,
+        },
+      });
     });
   }
 
