@@ -24,7 +24,15 @@ import { Inject } from '@nestjs/common';
 import { STORAGE_SERVICE, StorageService } from '../storage/storage.service';
 import { plainToInstance } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 
+@ApiTags('Admin / Products')
 @Controller('admin/products')
 export class AdminProductController {
   constructor(
@@ -33,6 +41,34 @@ export class AdminProductController {
   ) {}
 
   @Post()
+  @ApiOperation({ summary: 'Create product (multipart/form-data)' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Product form-data payload',
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', example: 'Цемент М500' },
+        slug: { type: 'string', example: 'cement-m500' },
+        description: { type: 'string', example: 'Прочный цемент' },
+        price: { type: 'number', example: 350.5 },
+        categoryId: { type: 'number', example: 1 },
+        unitId: { type: 'number', example: 1 },
+        isActive: { type: 'boolean', example: true },
+        inventoryQuantity: { type: 'number', example: 120 },
+        inventoryStatus: {
+          type: 'string',
+          example: 'IN_STOCK',
+          enum: ['IN_STOCK', 'OUT_OF_STOCK', 'ON_ORDER'],
+        },
+        images: {
+          type: 'array',
+          items: { type: 'string', format: 'binary' },
+        },
+      },
+      required: ['name', 'slug', 'price', 'categoryId', 'unitId'],
+    },
+  })
   @UseInterceptors(
     FileFieldsInterceptor(
       [
@@ -100,26 +136,35 @@ export class AdminProductController {
   }
 
   @Get()
+  @ApiOperation({ summary: 'List products (admin)' })
   findAll() {
     return this.productService.findAllAdmin();
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get product by id (admin)' })
+  @ApiParam({ name: 'id', example: 1 })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.productService.findOne(id);
   }
 
   @Patch(':id')
+  @ApiOperation({ summary: 'Update product' })
+  @ApiParam({ name: 'id', example: 1 })
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProductDto) {
     return this.productService.update(id, dto);
   }
 
   @Get(':id/inventory')
+  @ApiOperation({ summary: 'Get inventory by product id' })
+  @ApiParam({ name: 'id', example: 1 })
   getInventory(@Param('id', ParseIntPipe) id: number) {
     return this.productService.getInventory(id);
   }
 
   @Patch(':id/inventory')
+  @ApiOperation({ summary: 'Update inventory by product id' })
+  @ApiParam({ name: 'id', example: 1 })
   updateInventory(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateInventoryDto,
@@ -128,6 +173,9 @@ export class AdminProductController {
   }
 
   @Post(':id/images')
+  @ApiOperation({ summary: 'Upload product image' })
+  @ApiParam({ name: 'id', example: 1 })
+  @ApiConsumes('multipart/form-data')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
@@ -153,6 +201,8 @@ export class AdminProductController {
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete product' })
+  @ApiParam({ name: 'id', example: 1 })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.productService.remove(id);
   }
