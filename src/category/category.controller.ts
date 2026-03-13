@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -15,10 +16,12 @@ import {
   ApiOperation,
   ApiParam,
   ApiTags,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('Catalog')
 @Controller('categories')
@@ -57,6 +60,8 @@ export class CategoryController {
 }
 
 @ApiTags('Admin / Categories')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('admin/categories')
 export class AdminCategoryController {
   constructor(private readonly categoryService: CategoryService) {}

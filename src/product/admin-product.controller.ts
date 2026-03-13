@@ -11,6 +11,7 @@ import {
   UploadedFiles,
   UseInterceptors,
   BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
@@ -26,14 +27,20 @@ import { plainToInstance } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
 import {
   ApiBody,
+  ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiConsumes,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('Admin / Products')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('admin/products')
 export class AdminProductController {
   constructor(
@@ -87,6 +94,7 @@ export class AdminProductController {
       },
     },
   })
+  @ApiBadRequestResponse({ description: 'Validation error' })
   @UseInterceptors(
     FileFieldsInterceptor(
       [
@@ -198,6 +206,7 @@ export class AdminProductController {
       },
     },
   })
+  @ApiNotFoundResponse({ description: 'Product not found' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.productService.findOne(id);
   }
@@ -205,6 +214,8 @@ export class AdminProductController {
   @Patch(':id')
   @ApiOperation({ summary: 'Update product' })
   @ApiParam({ name: 'id', example: 1 })
+  @ApiBadRequestResponse({ description: 'Validation error' })
+  @ApiNotFoundResponse({ description: 'Product not found' })
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProductDto) {
     return this.productService.update(id, dto);
   }
@@ -212,6 +223,7 @@ export class AdminProductController {
   @Get(':id/inventory')
   @ApiOperation({ summary: 'Get inventory by product id' })
   @ApiParam({ name: 'id', example: 1 })
+  @ApiNotFoundResponse({ description: 'Product not found' })
   getInventory(@Param('id', ParseIntPipe) id: number) {
     return this.productService.getInventory(id);
   }
@@ -219,6 +231,8 @@ export class AdminProductController {
   @Patch(':id/inventory')
   @ApiOperation({ summary: 'Update inventory by product id' })
   @ApiParam({ name: 'id', example: 1 })
+  @ApiBadRequestResponse({ description: 'Validation error' })
+  @ApiNotFoundResponse({ description: 'Product not found' })
   updateInventory(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateInventoryDto,
@@ -230,6 +244,18 @@ export class AdminProductController {
   @ApiOperation({ summary: 'Upload product image' })
   @ApiParam({ name: 'id', example: 1 })
   @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Image upload',
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+      },
+      required: ['file'],
+    },
+  })
+  @ApiBadRequestResponse({ description: 'File is required' })
+  @ApiNotFoundResponse({ description: 'Product not found' })
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
@@ -257,6 +283,7 @@ export class AdminProductController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete product' })
   @ApiParam({ name: 'id', example: 1 })
+  @ApiNotFoundResponse({ description: 'Product not found' })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.productService.remove(id);
   }

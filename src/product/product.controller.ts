@@ -11,6 +11,7 @@ import {
   ApiParam,
   ApiQuery,
   ApiTags,
+  ApiNotFoundResponse,
 } from '@nestjs/swagger';
 import { ProductService } from './product.service';
 import { ProductQueryDto } from './dto/product-query.dto';
@@ -80,6 +81,7 @@ export class ProductController {
       },
     },
   })
+  @ApiNotFoundResponse({ description: 'Product not found' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.productService.findOne(id);
   }
