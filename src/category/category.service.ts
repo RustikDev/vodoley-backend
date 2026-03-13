@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
+import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 
-type CategoryNode = {
+export type CategoryNode = {
   id: number;
   name: string;
   slug: string;
@@ -13,6 +15,23 @@ type CategoryNode = {
 @Injectable()
 export class CategoryService {
   constructor(private readonly prisma: PrismaService) {}
+
+  async create(dto: CreateCategoryDto) {
+    if (dto.parentId) {
+      const parent = await this.prisma.category.findUnique({
+        where: { id: dto.parentId },
+      });
+      if (!parent) throw new NotFoundException('Parent category not found');
+    }
+
+    return this.prisma.category.create({ data: dto });
+  }
+
+  async findAll() {
+    return this.prisma.category.findMany({
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+    });
+  }
 
   async findAllTree(): Promise<CategoryNode[]> {
     const categories = await this.prisma.category.findMany({
@@ -43,5 +62,34 @@ export class CategoryService {
     }
 
     return roots;
+  }
+
+  async findOne(id: number) {
+    const category = await this.prisma.category.findUnique({ where: { id } });
+    if (!category) throw new NotFoundException(`Category with id ${id} not found`);
+    return category;
+  }
+
+  async update(id: number, dto: UpdateCategoryDto) {
+    await this.findOne(id);
+
+    if (dto.parentId !== undefined) {
+      if (dto.parentId === id) {
+        throw new BadRequestException('Category cannot be its own parent');
+      }
+      if (dto.parentId) {
+        const parent = await this.prisma.category.findUnique({
+          where: { id: dto.parentId },
+        });
+        if (!parent) throw new NotFoundException('Parent category not found');
+      }
+    }
+
+    return this.prisma.category.update({ where: { id }, data: dto });
+  }
+
+  async remove(id: number) {
+    await this.findOne(id);
+    return this.prisma.category.delete({ where: { id } });
   }
 }

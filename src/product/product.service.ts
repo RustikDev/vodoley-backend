@@ -23,9 +23,10 @@ export class ProductService {
     };
 
     if (query.q) {
+      // MySQL uses collation for case sensitivity, so no "mode: insensitive"
       where.OR = [
-        { name: { contains: query.q, mode: 'insensitive' } },
-        { description: { contains: query.q, mode: 'insensitive' } },
+        { name: { contains: query.q } },
+        { description: { contains: query.q } },
       ];
     }
 

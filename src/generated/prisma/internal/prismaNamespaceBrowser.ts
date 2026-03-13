@@ -51,7 +51,11 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
-  Product: 'Product'
+  Product: 'Product',
+  Category: 'Category',
+  Unit: 'Unit',
+  ProductImage: 'ProductImage',
+  Inventory: 'Inventory'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -73,14 +77,63 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const ProductScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  slug: 'slug',
   description: 'description',
   price: 'price',
-  imageUrl: 'imageUrl',
+  isActive: 'isActive',
+  categoryId: 'categoryId',
+  unitId: 'unitId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type ProductScalarFieldEnum = (typeof ProductScalarFieldEnum)[keyof typeof ProductScalarFieldEnum]
+
+
+export const CategoryScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  parentId: 'parentId',
+  isActive: 'isActive',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CategoryScalarFieldEnum = (typeof CategoryScalarFieldEnum)[keyof typeof CategoryScalarFieldEnum]
+
+
+export const UnitScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  shortName: 'shortName',
+  isActive: 'isActive',
+  sortOrder: 'sortOrder'
+} as const
+
+export type UnitScalarFieldEnum = (typeof UnitScalarFieldEnum)[keyof typeof UnitScalarFieldEnum]
+
+
+export const ProductImageScalarFieldEnum = {
+  id: 'id',
+  productId: 'productId',
+  url: 'url',
+  alt: 'alt',
+  sortOrder: 'sortOrder',
+  isMain: 'isMain'
+} as const
+
+export type ProductImageScalarFieldEnum = (typeof ProductImageScalarFieldEnum)[keyof typeof ProductImageScalarFieldEnum]
+
+
+export const InventoryScalarFieldEnum = {
+  productId: 'productId',
+  quantity: 'quantity',
+  status: 'status'
+} as const
+
+export type InventoryScalarFieldEnum = (typeof InventoryScalarFieldEnum)[keyof typeof InventoryScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -101,9 +154,33 @@ export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 export const ProductOrderByRelevanceFieldEnum = {
   name: 'name',
-  description: 'description',
-  imageUrl: 'imageUrl'
+  slug: 'slug',
+  description: 'description'
 } as const
 
 export type ProductOrderByRelevanceFieldEnum = (typeof ProductOrderByRelevanceFieldEnum)[keyof typeof ProductOrderByRelevanceFieldEnum]
+
+
+export const CategoryOrderByRelevanceFieldEnum = {
+  name: 'name',
+  slug: 'slug'
+} as const
+
+export type CategoryOrderByRelevanceFieldEnum = (typeof CategoryOrderByRelevanceFieldEnum)[keyof typeof CategoryOrderByRelevanceFieldEnum]
+
+
+export const UnitOrderByRelevanceFieldEnum = {
+  name: 'name',
+  shortName: 'shortName'
+} as const
+
+export type UnitOrderByRelevanceFieldEnum = (typeof UnitOrderByRelevanceFieldEnum)[keyof typeof UnitOrderByRelevanceFieldEnum]
+
+
+export const ProductImageOrderByRelevanceFieldEnum = {
+  url: 'url',
+  alt: 'alt'
+} as const
+
+export type ProductImageOrderByRelevanceFieldEnum = (typeof ProductImageOrderByRelevanceFieldEnum)[keyof typeof ProductImageOrderByRelevanceFieldEnum]
 

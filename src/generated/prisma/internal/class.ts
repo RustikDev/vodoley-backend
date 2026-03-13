@@ -20,7 +20,7 @@ const config: runtime.GetPrismaClientConfig = {
   "clientVersion": "7.2.0",
   "engineVersion": "0c8ef2ce45c83248ab3df073180d5eda9e8be7a3",
   "activeProvider": "mysql",
-  "inlineSchema": "generator client {\n  provider         = \"prisma-client\"\n  output           = \"../src/generated/prisma\"\n  clientGenerators = [\"esm\"]\n}\n\ndatasource db {\n  provider = \"mysql\"\n}\n\nmodel Product {\n  id          Int      @id @default(autoincrement())\n  name        String\n  description String?\n  price       Int\n  imageUrl    String?\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n}\n",
+  "inlineSchema": "generator client {\n  provider         = \"prisma-client\"\n  output           = \"../src/generated/prisma\"\n  clientGenerators = [\"esm\"]\n}\n\ndatasource db {\n  provider = \"mysql\"\n}\n\nenum InventoryStatus {\n  IN_STOCK\n  OUT_OF_STOCK\n  ON_ORDER\n}\n\nmodel Product {\n  id          Int      @id @default(autoincrement())\n  name        String\n  slug        String   @unique\n  description String?\n  price       Decimal  @db.Decimal(12, 2)\n  isActive    Boolean  @default(true)\n  categoryId  Int\n  unitId      Int\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n\n  category  Category       @relation(fields: [categoryId], references: [id])\n  unit      Unit           @relation(fields: [unitId], references: [id])\n  images    ProductImage[]\n  inventory Inventory?\n\n  @@index([name])\n  @@index([categoryId])\n  @@index([unitId])\n  @@index([isActive])\n  @@index([price])\n}\n\nmodel Category {\n  id        Int      @id @default(autoincrement())\n  name      String\n  slug      String   @unique\n  parentId  Int?\n  isActive  Boolean  @default(true)\n  sortOrder Int      @default(0)\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  parent   Category?  @relation(\"CategoryTree\", fields: [parentId], references: [id])\n  children Category[] @relation(\"CategoryTree\")\n  products Product[]\n\n  @@index([parentId])\n  @@index([isActive])\n}\n\nmodel Unit {\n  id        Int     @id @default(autoincrement())\n  name      String\n  shortName String\n  isActive  Boolean @default(true)\n  sortOrder Int     @default(0)\n\n  products Product[]\n}\n\nmodel ProductImage {\n  id        Int     @id @default(autoincrement())\n  productId Int\n  url       String\n  alt       String?\n  sortOrder Int     @default(0)\n  isMain    Boolean @default(false)\n\n  product Product @relation(fields: [productId], references: [id])\n\n  @@index([productId])\n}\n\nmodel Inventory {\n  productId Int             @id\n  quantity  Int             @default(0)\n  status    InventoryStatus @default(IN_STOCK)\n\n  product Product @relation(fields: [productId], references: [id])\n}\n",
   "runtimeDataModel": {
     "models": {},
     "enums": {},
@@ -28,7 +28,7 @@ const config: runtime.GetPrismaClientConfig = {
   }
 }
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"Product\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"price\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"imageUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"Product\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"slug\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"price\",\"kind\":\"scalar\",\"type\":\"Decimal\"},{\"name\":\"isActive\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"categoryId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"unitId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"category\",\"kind\":\"object\",\"type\":\"Category\",\"relationName\":\"CategoryToProduct\"},{\"name\":\"unit\",\"kind\":\"object\",\"type\":\"Unit\",\"relationName\":\"ProductToUnit\"},{\"name\":\"images\",\"kind\":\"object\",\"type\":\"ProductImage\",\"relationName\":\"ProductToProductImage\"},{\"name\":\"inventory\",\"kind\":\"object\",\"type\":\"Inventory\",\"relationName\":\"InventoryToProduct\"}],\"dbName\":null},\"Category\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"slug\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"parentId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"isActive\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"sortOrder\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"parent\",\"kind\":\"object\",\"type\":\"Category\",\"relationName\":\"CategoryTree\"},{\"name\":\"children\",\"kind\":\"object\",\"type\":\"Category\",\"relationName\":\"CategoryTree\"},{\"name\":\"products\",\"kind\":\"object\",\"type\":\"Product\",\"relationName\":\"CategoryToProduct\"}],\"dbName\":null},\"Unit\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"shortName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isActive\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"sortOrder\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"products\",\"kind\":\"object\",\"type\":\"Product\",\"relationName\":\"ProductToUnit\"}],\"dbName\":null},\"ProductImage\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"productId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"url\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"alt\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sortOrder\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"isMain\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"product\",\"kind\":\"object\",\"type\":\"Product\",\"relationName\":\"ProductToProductImage\"}],\"dbName\":null},\"Inventory\":{\"fields\":[{\"name\":\"productId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"quantity\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"InventoryStatus\"},{\"name\":\"product\",\"kind\":\"object\",\"type\":\"Product\",\"relationName\":\"InventoryToProduct\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
@@ -183,6 +183,46 @@ export interface PrismaClient<
     * ```
     */
   get product(): Prisma.ProductDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.category`: Exposes CRUD operations for the **Category** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Categories
+    * const categories = await prisma.category.findMany()
+    * ```
+    */
+  get category(): Prisma.CategoryDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.unit`: Exposes CRUD operations for the **Unit** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Units
+    * const units = await prisma.unit.findMany()
+    * ```
+    */
+  get unit(): Prisma.UnitDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.productImage`: Exposes CRUD operations for the **ProductImage** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ProductImages
+    * const productImages = await prisma.productImage.findMany()
+    * ```
+    */
+  get productImage(): Prisma.ProductImageDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.inventory`: Exposes CRUD operations for the **Inventory** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Inventories
+    * const inventories = await prisma.inventory.findMany()
+    * ```
+    */
+  get inventory(): Prisma.InventoryDelegate<ExtArgs, { omit: OmitOpts }>;
 }
 
 export function getPrismaClientClass(): PrismaClientConstructor {

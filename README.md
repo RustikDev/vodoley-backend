@@ -25,6 +25,46 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Local Development (Docker)
+
+### 1) Set environment
+
+Create or update `.env` in the project root:
+
+```bash
+PORT=3000
+MYSQL_ROOT_USER=root
+MYSQL_ROOT_PASSWORD=change_me
+MYSQL_DATABASE=vodoley_db
+MYSQL_USER=app
+MYSQL_PASSWORD=change_me_app
+DATABASE_URL="mysql://app:change_me_app@db:3306/vodoley_db"
+```
+
+### 2) Start containers
+
+```bash
+docker compose up -d --build
+```
+
+### 3) Apply schema
+
+```bash
+docker compose run --rm backend npx prisma db push
+```
+
+### 4) Check health
+
+```bash
+http://localhost:3000/health
+```
+
+### 5) Stop containers
+
+```bash
+docker compose down
+```
+
 ## Project setup
 
 ```bash
