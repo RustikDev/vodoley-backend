@@ -36,6 +36,8 @@ services:
       DATABASE_URL: ${DATABASE_URL}
     ports:
       - "3000:3000"
+    volumes:
+      - ./uploads:/app/uploads
     depends_on:
       - db
 

@@ -199,4 +199,14 @@ export class ProductService {
       update: dto,
     });
   }
+
+  async addImage(
+    id: number,
+    image: { url: string; alt?: string; isMain?: boolean; sortOrder?: number },
+  ) {
+    await this.findOne(id);
+    return this.prisma.productImage.create({
+      data: { ...image, productId: id },
+    });
+  }
 }
