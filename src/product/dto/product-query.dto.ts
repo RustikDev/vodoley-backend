@@ -44,6 +44,13 @@ export class ProductQueryDto {
   inStock?: boolean;
 
   @IsOptional()
+  @Transform(({ value }) =>
+    value === undefined ? undefined : value === 'true' || value === true,
+  )
+  @IsBoolean()
+  includeChildren?: boolean;
+
+  @IsOptional()
   @IsIn(['price_asc', 'price_desc', 'newest'])
   sort?: 'price_asc' | 'price_desc' | 'newest';
 

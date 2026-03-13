@@ -46,7 +46,13 @@ export class ProductService {
     }
 
     if (query.categoryId) {
-      where.categoryId = query.categoryId;
+      const includeChildren = query.includeChildren ?? true;
+      if (includeChildren) {
+        const ids = await this.getCategoryWithDescendants(query.categoryId);
+        where.categoryId = { in: ids };
+      } else {
+        where.categoryId = query.categoryId;
+      }
     }
 
     if (query.unitId) {
@@ -91,6 +97,29 @@ export class ProductService {
     ]);
 
     return { items, total, page, pageSize };
+  }
+
+  private async getCategoryWithDescendants(rootId: number): Promise<number[]> {
+    const categories = await this.prisma.category.findMany({
+      select: { id: true, parentId: true },
+    });
+
+    const childrenByParent = new Map<number, number[]>();
+    for (const c of categories) {
+      const pid = c.parentId ?? 0;
+      if (!childrenByParent.has(pid)) childrenByParent.set(pid, []);
+      childrenByParent.get(pid)!.push(c.id);
+    }
+
+    const result: number[] = [];
+    const stack = [rootId];
+    while (stack.length) {
+      const id = stack.pop()!;
+      result.push(id);
+      const kids = childrenByParent.get(id) ?? [];
+      for (const kid of kids) stack.push(kid);
+    }
+    return result;
   }
 
   async findAllAdmin() {
