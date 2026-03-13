@@ -183,7 +183,11 @@ export class ProductService {
 
   async remove(id: number) {
     await this.findOne(id);
-    return await this.prisma.product.delete({ where: { id } });
+    return await this.prisma.$transaction(async (tx) => {
+      await tx.productImage.deleteMany({ where: { productId: id } });
+      await tx.inventory.deleteMany({ where: { productId: id } });
+      return tx.product.delete({ where: { id } });
+    });
   }
 
   async getInventory(id: number) {

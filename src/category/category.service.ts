@@ -90,6 +90,19 @@ export class CategoryService {
 
   async remove(id: number) {
     await this.findOne(id);
+
+    const [childrenCount, productsCount] = await this.prisma.$transaction([
+      this.prisma.category.count({ where: { parentId: id } }),
+      this.prisma.product.count({ where: { categoryId: id } }),
+    ]);
+
+    if (childrenCount > 0) {
+      throw new BadRequestException('Category has child categories');
+    }
+    if (productsCount > 0) {
+      throw new BadRequestException('Category has products');
+    }
+
     return this.prisma.category.delete({ where: { id } });
   }
 }

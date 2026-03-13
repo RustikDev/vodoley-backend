@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
 import { CreateUnitDto } from './dto/create-unit.dto';
 import { UpdateUnitDto } from './dto/update-unit.dto';
@@ -30,6 +30,12 @@ export class UnitService {
 
   async remove(id: number) {
     await this.findOne(id);
+    const productsCount = await this.prisma.product.count({
+      where: { unitId: id },
+    });
+    if (productsCount > 0) {
+      throw new BadRequestException('Unit is used by products');
+    }
     return this.prisma.unit.delete({ where: { id } });
   }
 }
