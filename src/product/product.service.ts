@@ -4,6 +4,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductQueryDto } from './dto/product-query.dto';
 import { Prisma } from 'src/generated/prisma/client';
+import { UpdateInventoryDto } from './dto/inventory.dto';
 
 @Injectable()
 export class ProductService {
@@ -183,5 +184,19 @@ export class ProductService {
   async remove(id: number) {
     await this.findOne(id);
     return await this.prisma.product.delete({ where: { id } });
+  }
+
+  async getInventory(id: number) {
+    await this.findOne(id);
+    return this.prisma.inventory.findUnique({ where: { productId: id } });
+  }
+
+  async updateInventory(id: number, dto: UpdateInventoryDto) {
+    await this.findOne(id);
+    return this.prisma.inventory.upsert({
+      where: { productId: id },
+      create: { ...dto, productId: id },
+      update: dto,
+    });
   }
 }

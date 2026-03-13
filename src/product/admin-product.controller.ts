@@ -11,6 +11,7 @@ import {
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { UpdateInventoryDto } from './dto/inventory.dto';
 
 @Controller('admin/products')
 export class AdminProductController {
@@ -34,6 +35,19 @@ export class AdminProductController {
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProductDto) {
     return this.productService.update(id, dto);
+  }
+
+  @Get(':id/inventory')
+  getInventory(@Param('id', ParseIntPipe) id: number) {
+    return this.productService.getInventory(id);
+  }
+
+  @Patch(':id/inventory')
+  updateInventory(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateInventoryDto,
+  ) {
+    return this.productService.updateInventory(id, dto);
   }
 
   @Delete(':id')
