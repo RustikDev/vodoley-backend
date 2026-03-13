@@ -33,4 +33,5 @@ export class EstimateService {
     const total = items.reduce((sum, i) => sum + i.lineTotal, 0);
     return { items, total };
   }
+
 }
