@@ -8,6 +8,7 @@ import { PrismaModule } from 'prisma/prisma.module';
 import { CategoryModule } from './category/category.module';
 import { UnitModule } from './unit/unit.module';
 import { AuthModule } from './auth/auth.module';
+import { EstimateModule } from './estimate/estimate.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AuthModule } from './auth/auth.module';
     CategoryModule,
     UnitModule,
     AuthModule,
+    EstimateModule,
   ],
   controllers: [AppController],
   providers: [AppService],
