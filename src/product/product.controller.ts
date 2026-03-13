@@ -5,7 +5,13 @@ import {
   ParseIntPipe,
   Query,
 } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { ProductService } from './product.service';
 import { ProductQueryDto } from './dto/product-query.dto';
 
@@ -26,6 +32,30 @@ export class ProductController {
   @ApiQuery({ name: 'sort', required: false })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'pageSize', required: false })
+  @ApiOkResponse({
+    description: 'Paginated products list',
+    schema: {
+      example: {
+        items: [
+          {
+            id: 1,
+            name: 'Цемент М500',
+            slug: 'cement-m500',
+            description: 'Прочный цемент',
+            price: 350.5,
+            isActive: true,
+            categoryId: 1,
+            unitId: 1,
+            images: [],
+            inventory: { quantity: 120, status: 'IN_STOCK' },
+          },
+        ],
+        total: 1,
+        page: 1,
+        pageSize: 20,
+      },
+    },
+  })
   findAll(@Query() query: ProductQueryDto) {
     return this.productService.findAll(query);
   }
@@ -33,6 +63,23 @@ export class ProductController {
   @Get(':id')
   @ApiOperation({ summary: 'Get product by id (public)' })
   @ApiParam({ name: 'id', example: 1 })
+  @ApiOkResponse({
+    description: 'Product detail',
+    schema: {
+      example: {
+        id: 1,
+        name: 'Цемент М500',
+        slug: 'cement-m500',
+        description: 'Прочный цемент',
+        price: 350.5,
+        isActive: true,
+        categoryId: 1,
+        unitId: 1,
+        images: [],
+        inventory: { quantity: 120, status: 'IN_STOCK' },
+      },
+    },
+  })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.productService.findOne(id);
   }

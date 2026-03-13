@@ -27,6 +27,7 @@ import { validateOrReject } from 'class-validator';
 import {
   ApiBody,
   ApiConsumes,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
@@ -48,9 +49,9 @@ export class AdminProductController {
     schema: {
       type: 'object',
       properties: {
-        name: { type: 'string', example: 'Цемент М500' },
+        name: { type: 'string', example: 'Cement M500' },
         slug: { type: 'string', example: 'cement-m500' },
-        description: { type: 'string', example: 'Прочный цемент' },
+        description: { type: 'string', example: 'High strength cement' },
         price: { type: 'number', example: 350.5 },
         categoryId: { type: 'number', example: 1 },
         unitId: { type: 'number', example: 1 },
@@ -67,6 +68,23 @@ export class AdminProductController {
         },
       },
       required: ['name', 'slug', 'price', 'categoryId', 'unitId'],
+    },
+  })
+  @ApiOkResponse({
+    description: 'Created product',
+    schema: {
+      example: {
+        id: 1,
+        name: 'Cement M500',
+        slug: 'cement-m500',
+        description: 'High strength cement',
+        price: 350.5,
+        isActive: true,
+        categoryId: 1,
+        unitId: 1,
+        images: [],
+        inventory: { quantity: 120, status: 'IN_STOCK' },
+      },
     },
   })
   @UseInterceptors(
@@ -137,6 +155,25 @@ export class AdminProductController {
 
   @Get()
   @ApiOperation({ summary: 'List products (admin)' })
+  @ApiOkResponse({
+    description: 'Products list',
+    schema: {
+      example: [
+        {
+          id: 1,
+          name: 'Cement M500',
+          slug: 'cement-m500',
+          description: 'High strength cement',
+          price: 350.5,
+          isActive: true,
+          categoryId: 1,
+          unitId: 1,
+          images: [],
+          inventory: { quantity: 120, status: 'IN_STOCK' },
+        },
+      ],
+    },
+  })
   findAll() {
     return this.productService.findAllAdmin();
   }
@@ -144,6 +181,23 @@ export class AdminProductController {
   @Get(':id')
   @ApiOperation({ summary: 'Get product by id (admin)' })
   @ApiParam({ name: 'id', example: 1 })
+  @ApiOkResponse({
+    description: 'Product detail',
+    schema: {
+      example: {
+        id: 1,
+        name: 'Cement M500',
+        slug: 'cement-m500',
+        description: 'High strength cement',
+        price: 350.5,
+        isActive: true,
+        categoryId: 1,
+        unitId: 1,
+        images: [],
+        inventory: { quantity: 120, status: 'IN_STOCK' },
+      },
+    },
+  })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.productService.findOne(id);
   }
