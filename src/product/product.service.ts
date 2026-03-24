@@ -5,15 +5,30 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductQueryDto } from './dto/product-query.dto';
 import { Prisma } from 'src/generated/prisma/client';
 import { UpdateInventoryDto } from './dto/inventory.dto';
+import { InMemoryCacheService } from '../common/cache/in-memory-cache.service';
 
 @Injectable()
 export class ProductService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cache: InMemoryCacheService,
+  ) {}
+
+  private invalidateProductCache() {
+    this.cache.clearByPrefix('products:list:');
+  }
+
+  private buildProductsCacheKey(query: ProductQueryDto) {
+    const entries = Object.entries(query)
+      .filter(([, value]) => value !== undefined && value !== null && value !== '')
+      .sort(([a], [b]) => a.localeCompare(b));
+    return `products:list:${JSON.stringify(entries)}`;
+  }
 
   async create(createProductDto: CreateProductDto) {
     const { images, inventory, ...data } = createProductDto;
 
-    return await this.prisma.product.create({
+    const created = await this.prisma.product.create({
       data: {
         ...data,
         images: images ? { create: images } : undefined,
@@ -26,9 +41,20 @@ export class ProductService {
         inventory: true,
       },
     });
+    this.invalidateProductCache();
+    return created;
   }
 
   async findAll(query: ProductQueryDto) {
+    const cacheKey = this.buildProductsCacheKey(query);
+    const cached = this.cache.get<{
+      items: unknown[];
+      total: number;
+      page: number;
+      pageSize: number;
+    }>(cacheKey);
+    if (cached) return cached;
+
     const page = query.page ?? 1;
     const pageSize = query.pageSize ?? 20;
     const skip = (page - 1) * pageSize;
@@ -96,7 +122,9 @@ export class ProductService {
       this.prisma.product.count({ where }),
     ]);
 
-    return { items, total, page, pageSize };
+    const result = { items, total, page, pageSize };
+    this.cache.set(cacheKey, result, 30_000);
+    return result;
   }
 
   private async getCategoryWithDescendants(rootId: number): Promise<number[]> {
@@ -179,7 +207,7 @@ export class ProductService {
 
     const { images, inventory, ...data } = updateProductDto as CreateProductDto;
 
-    return await this.prisma.$transaction(async (tx) => {
+    const updated = await this.prisma.$transaction(async (tx) => {
       if (images) {
         await tx.productImage.deleteMany({ where: { productId: id } });
         if (images.length > 0) {
@@ -208,15 +236,19 @@ export class ProductService {
         },
       });
     });
+    this.invalidateProductCache();
+    return updated;
   }
 
   async remove(id: number) {
     await this.findOne(id);
-    return await this.prisma.$transaction(async (tx) => {
+    const deleted = await this.prisma.$transaction(async (tx) => {
       await tx.productImage.deleteMany({ where: { productId: id } });
       await tx.inventory.deleteMany({ where: { productId: id } });
       return tx.product.delete({ where: { id } });
     });
+    this.invalidateProductCache();
+    return deleted;
   }
 
   async getInventory(id: number) {
@@ -226,11 +258,13 @@ export class ProductService {
 
   async updateInventory(id: number, dto: UpdateInventoryDto) {
     await this.findOne(id);
-    return this.prisma.inventory.upsert({
+    const inventory = await this.prisma.inventory.upsert({
       where: { productId: id },
       create: { ...dto, productId: id },
       update: dto,
     });
+    this.invalidateProductCache();
+    return inventory;
   }
 
   async addImage(
@@ -238,8 +272,10 @@ export class ProductService {
     image: { url: string; alt?: string; isMain?: boolean; sortOrder?: number },
   ) {
     await this.findOne(id);
-    return this.prisma.productImage.create({
+    const imageCreated = await this.prisma.productImage.create({
       data: { ...image, productId: id },
     });
+    this.invalidateProductCache();
+    return imageCreated;
   }
 }

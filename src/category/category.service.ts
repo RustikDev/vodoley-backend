@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from 'prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { InMemoryCacheService } from '../common/cache/in-memory-cache.service';
 
 export type CategoryNode = {
   id: number;
@@ -14,7 +15,15 @@ export type CategoryNode = {
 
 @Injectable()
 export class CategoryService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cache: InMemoryCacheService,
+  ) {}
+
+  private invalidateCatalogCache() {
+    this.cache.clearByPrefix('categories:');
+    this.cache.clearByPrefix('products:list:');
+  }
 
   async create(dto: CreateCategoryDto) {
     if (dto.parentId) {
@@ -24,7 +33,9 @@ export class CategoryService {
       if (!parent) throw new NotFoundException('Parent category not found');
     }
 
-    return this.prisma.category.create({ data: dto });
+    const created = await this.prisma.category.create({ data: dto });
+    this.invalidateCatalogCache();
+    return created;
   }
 
   async findAll() {
@@ -34,6 +45,10 @@ export class CategoryService {
   }
 
   async findAllTree(): Promise<CategoryNode[]> {
+    const cacheKey = 'categories:tree:active';
+    const cached = this.cache.get<CategoryNode[]>(cacheKey);
+    if (cached) return cached;
+
     const categories = await this.prisma.category.findMany({
       where: { isActive: true },
       orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
@@ -61,6 +76,7 @@ export class CategoryService {
       }
     }
 
+    this.cache.set(cacheKey, roots, 60_000);
     return roots;
   }
 
@@ -85,7 +101,9 @@ export class CategoryService {
       }
     }
 
-    return this.prisma.category.update({ where: { id }, data: dto });
+    const updated = await this.prisma.category.update({ where: { id }, data: dto });
+    this.invalidateCatalogCache();
+    return updated;
   }
 
   async remove(id: number) {
@@ -103,6 +121,8 @@ export class CategoryService {
       throw new BadRequestException('Category has products');
     }
 
-    return this.prisma.category.delete({ where: { id } });
+    const deleted = await this.prisma.category.delete({ where: { id } });
+    this.invalidateCatalogCache();
+    return deleted;
   }
 }

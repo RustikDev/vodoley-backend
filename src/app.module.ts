@@ -9,6 +9,7 @@ import { CategoryModule } from './category/category.module';
 import { UnitModule } from './unit/unit.module';
 import { AuthModule } from './auth/auth.module';
 import { EstimateModule } from './estimate/estimate.module';
+import { CacheModule } from './common/cache/cache.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { EstimateModule } from './estimate/estimate.module';
     UnitModule,
     AuthModule,
     EstimateModule,
+    CacheModule,
   ],
   controllers: [AppController],
   providers: [AppService],

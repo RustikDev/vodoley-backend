@@ -2,13 +2,23 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from 'prisma/prisma.service';
 import { CreateUnitDto } from './dto/create-unit.dto';
 import { UpdateUnitDto } from './dto/update-unit.dto';
+import { InMemoryCacheService } from '../common/cache/in-memory-cache.service';
 
 @Injectable()
 export class UnitService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cache: InMemoryCacheService,
+  ) {}
+
+  private invalidateCatalogCache() {
+    this.cache.clearByPrefix('products:list:');
+  }
 
   async create(dto: CreateUnitDto) {
-    return this.prisma.unit.create({ data: dto });
+    const created = await this.prisma.unit.create({ data: dto });
+    this.invalidateCatalogCache();
+    return created;
   }
 
   async findAll() {
@@ -25,7 +35,9 @@ export class UnitService {
 
   async update(id: number, dto: UpdateUnitDto) {
     await this.findOne(id);
-    return this.prisma.unit.update({ where: { id }, data: dto });
+    const updated = await this.prisma.unit.update({ where: { id }, data: dto });
+    this.invalidateCatalogCache();
+    return updated;
   }
 
   async remove(id: number) {
@@ -36,6 +48,8 @@ export class UnitService {
     if (productsCount > 0) {
       throw new BadRequestException('Unit is used by products');
     }
-    return this.prisma.unit.delete({ where: { id } });
+    const deleted = await this.prisma.unit.delete({ where: { id } });
+    this.invalidateCatalogCache();
+    return deleted;
   }
 }
