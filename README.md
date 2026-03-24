@@ -125,6 +125,15 @@ The app uses a cache service for public catalog endpoints.
 - If `REDIS_URL` is configured and `redis` package is installed, cache uses Redis.
 - If Redis is unavailable, app falls back to in-memory cache automatically.
 
+### 10) Rate limiting
+
+Global request throttling is enabled.
+
+- Default limit: `THROTTLE_LIMIT` within `THROTTLE_TTL_MS`.
+- Admin login limit: `AUTH_THROTTLE_LIMIT` within `AUTH_THROTTLE_TTL_MS`.
+
+When limit is exceeded, API returns `429 Too Many Requests`.
+
 ## Project setup
 
 ```bash
