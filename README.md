@@ -33,6 +33,12 @@ Create or update `.env` in the project root:
 
 ```bash
 PORT=3000
+JWT_SECRET=change_me_jwt_secret
+ADMIN_EMAIL=admin@example.com
+# Recommended: salted hash in format <salt>:<hex_hash>
+ADMIN_PASSWORD_HASH=change_me_salt:change_me_hash
+# Optional fallback for dev only
+ADMIN_PASSWORD=admin
 MYSQL_ROOT_USER=root
 MYSQL_ROOT_PASSWORD=change_me
 MYSQL_DATABASE=vodoley_db
@@ -92,6 +98,12 @@ Body:
 }
 ```
 
+To generate `ADMIN_PASSWORD_HASH` (PowerShell):
+
+```powershell
+node -e "const c=require('crypto');const pwd='Тут пароль';const salt=c.randomBytes(16).toString('hex');const hash=c.scryptSync(pwd,salt,64).toString('hex');console.log(salt+':'+hash)"
+```
+
 Response:
 
 ```json
@@ -131,6 +143,7 @@ Global request throttling is enabled.
 
 - Default limit: `THROTTLE_LIMIT` within `THROTTLE_TTL_MS`.
 - Admin login limit: `AUTH_THROTTLE_LIMIT` within `AUTH_THROTTLE_TTL_MS`.
+- `GET /health` is excluded from throttling.
 
 When limit is exceeded, API returns `429 Too Many Requests`.
 

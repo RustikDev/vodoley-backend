@@ -1,5 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { scryptSync, timingSafeEqual } from 'node:crypto';
 
 @Injectable()
 export class AuthService {
@@ -17,8 +18,32 @@ export class AuthService {
     return value;
   }
 
+  private verifyPassword(password: string) {
+    const passwordHash = process.env.ADMIN_PASSWORD_HASH;
+
+    // Preferred mode for production: salted hash in env.
+    if (passwordHash) {
+      const [salt, hashHex] = passwordHash.split(':');
+      if (!salt || !hashHex) {
+        throw new UnauthorizedException('ADMIN_PASSWORD_HASH invalid format');
+      }
+
+      const hashBuffer = Buffer.from(hashHex, 'hex');
+      const candidate = scryptSync(password, salt, hashBuffer.length);
+
+      if (candidate.length !== hashBuffer.length) {
+        return false;
+      }
+
+      return timingSafeEqual(candidate, hashBuffer);
+    }
+
+    // Backward compatibility for local/dev setup.
+    return password === this.adminPassword;
+  }
+
   async login(email: string, password: string) {
-    if (email !== this.adminEmail || password !== this.adminPassword) {
+    if (email !== this.adminEmail || !this.verifyPassword(password)) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
