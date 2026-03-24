@@ -27,6 +27,13 @@ services:
     depends_on:
       - db
 
+  redis:
+    image: redis:7-alpine
+    container_name: vodoley_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
   backend:
     build: .
     container_name: vodoley_backend
@@ -37,12 +44,14 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
     ports:
       - "3000:3000"
     volumes:
       - ./uploads:/app/uploads
     depends_on:
       - db
+      - redis
 
 volumes:
   vodoley_db_data:

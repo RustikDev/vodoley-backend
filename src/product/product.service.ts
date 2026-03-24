@@ -14,8 +14,8 @@ export class ProductService {
     private readonly cache: InMemoryCacheService,
   ) {}
 
-  private invalidateProductCache() {
-    this.cache.clearByPrefix('products:list:');
+  private async invalidateProductCache() {
+    await this.cache.clearByPrefix('products:list:');
   }
 
   private buildProductsCacheKey(query: ProductQueryDto) {
@@ -41,13 +41,13 @@ export class ProductService {
         inventory: true,
       },
     });
-    this.invalidateProductCache();
+    await this.invalidateProductCache();
     return created;
   }
 
   async findAll(query: ProductQueryDto) {
     const cacheKey = this.buildProductsCacheKey(query);
-    const cached = this.cache.get<{
+    const cached = await this.cache.get<{
       items: unknown[];
       total: number;
       page: number;
@@ -123,7 +123,7 @@ export class ProductService {
     ]);
 
     const result = { items, total, page, pageSize };
-    this.cache.set(cacheKey, result, 30_000);
+    await this.cache.set(cacheKey, result, 30_000);
     return result;
   }
 
@@ -236,7 +236,7 @@ export class ProductService {
         },
       });
     });
-    this.invalidateProductCache();
+    await this.invalidateProductCache();
     return updated;
   }
 
@@ -247,7 +247,7 @@ export class ProductService {
       await tx.inventory.deleteMany({ where: { productId: id } });
       return tx.product.delete({ where: { id } });
     });
-    this.invalidateProductCache();
+    await this.invalidateProductCache();
     return deleted;
   }
 
@@ -263,7 +263,7 @@ export class ProductService {
       create: { ...dto, productId: id },
       update: dto,
     });
-    this.invalidateProductCache();
+    await this.invalidateProductCache();
     return inventory;
   }
 
@@ -275,7 +275,7 @@ export class ProductService {
     const imageCreated = await this.prisma.productImage.create({
       data: { ...image, productId: id },
     });
-    this.invalidateProductCache();
+    await this.invalidateProductCache();
     return imageCreated;
   }
 }

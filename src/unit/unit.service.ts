@@ -11,13 +11,13 @@ export class UnitService {
     private readonly cache: InMemoryCacheService,
   ) {}
 
-  private invalidateCatalogCache() {
-    this.cache.clearByPrefix('products:list:');
+  private async invalidateCatalogCache() {
+    await this.cache.clearByPrefix('products:list:');
   }
 
   async create(dto: CreateUnitDto) {
     const created = await this.prisma.unit.create({ data: dto });
-    this.invalidateCatalogCache();
+    await this.invalidateCatalogCache();
     return created;
   }
 
@@ -36,7 +36,7 @@ export class UnitService {
   async update(id: number, dto: UpdateUnitDto) {
     await this.findOne(id);
     const updated = await this.prisma.unit.update({ where: { id }, data: dto });
-    this.invalidateCatalogCache();
+    await this.invalidateCatalogCache();
     return updated;
   }
 
@@ -49,7 +49,7 @@ export class UnitService {
       throw new BadRequestException('Unit is used by products');
     }
     const deleted = await this.prisma.unit.delete({ where: { id } });
-    this.invalidateCatalogCache();
+    await this.invalidateCatalogCache();
     return deleted;
   }
 }

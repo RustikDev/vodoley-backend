@@ -118,6 +118,13 @@ Body:
 }
 ```
 
+### 9) Cache backend
+
+The app uses a cache service for public catalog endpoints.
+
+- If `REDIS_URL` is configured and `redis` package is installed, cache uses Redis.
+- If Redis is unavailable, app falls back to in-memory cache automatically.
+
 ## Project setup
 
 ```bash

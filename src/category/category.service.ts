@@ -20,9 +20,9 @@ export class CategoryService {
     private readonly cache: InMemoryCacheService,
   ) {}
 
-  private invalidateCatalogCache() {
-    this.cache.clearByPrefix('categories:');
-    this.cache.clearByPrefix('products:list:');
+  private async invalidateCatalogCache() {
+    await this.cache.clearByPrefix('categories:');
+    await this.cache.clearByPrefix('products:list:');
   }
 
   async create(dto: CreateCategoryDto) {
@@ -34,7 +34,7 @@ export class CategoryService {
     }
 
     const created = await this.prisma.category.create({ data: dto });
-    this.invalidateCatalogCache();
+    await this.invalidateCatalogCache();
     return created;
   }
 
@@ -46,7 +46,7 @@ export class CategoryService {
 
   async findAllTree(): Promise<CategoryNode[]> {
     const cacheKey = 'categories:tree:active';
-    const cached = this.cache.get<CategoryNode[]>(cacheKey);
+    const cached = await this.cache.get<CategoryNode[]>(cacheKey);
     if (cached) return cached;
 
     const categories = await this.prisma.category.findMany({
@@ -76,7 +76,7 @@ export class CategoryService {
       }
     }
 
-    this.cache.set(cacheKey, roots, 60_000);
+    await this.cache.set(cacheKey, roots, 60_000);
     return roots;
   }
 
@@ -102,7 +102,7 @@ export class CategoryService {
     }
 
     const updated = await this.prisma.category.update({ where: { id }, data: dto });
-    this.invalidateCatalogCache();
+    await this.invalidateCatalogCache();
     return updated;
   }
 
@@ -122,7 +122,7 @@ export class CategoryService {
     }
 
     const deleted = await this.prisma.category.delete({ where: { id } });
-    this.invalidateCatalogCache();
+    await this.invalidateCatalogCache();
     return deleted;
   }
 }
