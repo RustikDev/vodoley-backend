@@ -65,6 +65,59 @@ http://localhost:3000/health
 docker compose down
 ```
 
+### 6) API docs (Swagger)
+
+Open:
+
+```bash
+http://localhost:3000/api-docs
+```
+
+Admin endpoints require JWT Bearer token.
+
+### 7) Admin auth
+
+Login request:
+
+```bash
+POST /admin/auth/login
+```
+
+Body:
+
+```json
+{
+  "email": "admin@example.com",
+  "password": "admin"
+}
+```
+
+Response:
+
+```json
+{
+  "access_token": "..."
+}
+```
+
+Use this token in Swagger `Authorize` as `Bearer <token>`.
+
+### 8) Estimate preview
+
+```bash
+POST /estimate/preview
+```
+
+Body:
+
+```json
+{
+  "items": [
+    { "productId": 1, "quantity": 2 }
+  ]
+}
+```
+
 ## Project setup
 
 ```bash

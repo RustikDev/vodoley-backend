@@ -1,17 +1,11 @@
+import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
 import {
-  Controller,
-  Get,
-  Param,
-  ParseIntPipe,
-  Query,
-} from '@nestjs/common';
-import {
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiQuery,
   ApiTags,
-  ApiNotFoundResponse,
 } from '@nestjs/swagger';
 import { ProductService } from './product.service';
 import { ProductQueryDto } from './dto/product-query.dto';
@@ -40,9 +34,9 @@ export class ProductController {
         items: [
           {
             id: 1,
-            name: 'Цемент М500',
+            name: 'Cement M500',
             slug: 'cement-m500',
-            description: 'Прочный цемент',
+            description: 'High strength cement',
             price: 350.5,
             isActive: true,
             categoryId: 1,
@@ -69,9 +63,9 @@ export class ProductController {
     schema: {
       example: {
         id: 1,
-        name: 'Цемент М500',
+        name: 'Cement M500',
         slug: 'cement-m500',
-        description: 'Прочный цемент',
+        description: 'High strength cement',
         price: 350.5,
         isActive: true,
         categoryId: 1,
