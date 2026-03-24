@@ -8,6 +8,12 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 
+type RequestUser = { userId: number; email?: string };
+type RequestWithMeta = Request & {
+  requestId?: string;
+  user?: RequestUser;
+};
+
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GlobalExceptionFilter.name);
@@ -15,7 +21,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<Request>();
+    const request = ctx.getRequest<RequestWithMeta>();
 
     const status =
       exception instanceof HttpException
@@ -34,8 +40,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           'Unexpected error';
 
     const errorText = Array.isArray(message) ? message.join(', ') : message;
+    const requestId = request.requestId ?? '-';
+    const userId = request.user?.userId ?? 'anonymous';
     this.logger.error(
-      `${request.method} ${request.originalUrl} ${status} ${errorText}`,
+      `requestId=${requestId} user=${userId} ${request.method} ${request.originalUrl} ${status} ${errorText}`,
       exception instanceof Error ? exception.stack : undefined,
     );
 
@@ -43,6 +51,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       statusCode: status,
       message,
       path: request.originalUrl,
+      requestId,
       timestamp: new Date().toISOString(),
     });
   }

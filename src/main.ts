@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -18,6 +19,7 @@ async function bootstrap() {
     origin: true,
     credentials: true,
   });
+  app.use((req, res, next) => new RequestIdMiddleware().use(req, res, next));
 
   app.useGlobalPipes(
     new ValidationPipe({
