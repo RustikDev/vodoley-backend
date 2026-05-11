@@ -13,4 +13,9 @@ export class LocalStorageService implements StorageService {
     await fs.writeFile(filepath, buffer);
     return `/uploads/${filename}`;
   }
+
+  async delete(filename: string): Promise<void> {
+    const filepath = path.join(this.uploadDir, filename);
+    await fs.unlink(filepath).catch(() => {});
+  }
 }

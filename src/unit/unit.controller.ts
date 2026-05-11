@@ -23,6 +23,26 @@ import { CreateUnitDto } from './dto/create-unit.dto';
 import { UpdateUnitDto } from './dto/update-unit.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
+@ApiTags('Catalog')
+@Controller('units')
+export class PublicUnitController {
+  constructor(private readonly unitService: UnitService) {}
+
+  @Get()
+  @ApiOperation({ summary: 'List active units' })
+  @ApiOkResponse({
+    description: 'Units list',
+    schema: {
+      example: [
+        { id: 1, name: 'Килограмм', shortName: 'кг', isActive: true, sortOrder: 0 },
+      ],
+    },
+  })
+  findAll() {
+    return this.unitService.findAll();
+  }
+}
+
 @ApiTags('Admin / Units')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)

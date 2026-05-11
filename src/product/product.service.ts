@@ -6,12 +6,15 @@ import { ProductQueryDto } from './dto/product-query.dto';
 import { Prisma } from 'src/generated/prisma/client';
 import { UpdateInventoryDto } from './dto/inventory.dto';
 import { InMemoryCacheService } from '../common/cache/in-memory-cache.service';
+import { Inject } from '@nestjs/common';
+import { STORAGE_SERVICE, StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class ProductService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cache: InMemoryCacheService,
+    @Inject(STORAGE_SERVICE) private readonly storage: StorageService,
   ) {}
 
   private async invalidateProductCache() {
@@ -277,5 +280,18 @@ export class ProductService {
     });
     await this.invalidateProductCache();
     return imageCreated;
+  }
+
+  async deleteImage(productId: number, imageId: number) {
+    await this.findOne(productId);
+    const image = await this.prisma.productImage.findUnique({ where: { id: imageId } });
+    if (!image || image.productId !== productId) {
+      throw new NotFoundException(`Image ${imageId} not found for product ${productId}`);
+    }
+    await this.prisma.productImage.delete({ where: { id: imageId } });
+    const filename = image.url.split('/').pop();
+    if (filename) await this.storage.delete(filename);
+    await this.invalidateProductCache();
+    return { deleted: imageId };
   }
 }

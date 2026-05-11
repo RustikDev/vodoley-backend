@@ -280,6 +280,18 @@ export class AdminProductController {
     });
   }
 
+  @Delete(':id/images/:imageId')
+  @ApiOperation({ summary: 'Delete product image' })
+  @ApiParam({ name: 'id', example: 1 })
+  @ApiParam({ name: 'imageId', example: 1 })
+  @ApiNotFoundResponse({ description: 'Product or image not found' })
+  deleteImage(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('imageId', ParseIntPipe) imageId: number,
+  ) {
+    return this.productService.deleteImage(id, imageId);
+  }
+
   @Delete(':id')
   @ApiOperation({ summary: 'Delete product' })
   @ApiParam({ name: 'id', example: 1 })
