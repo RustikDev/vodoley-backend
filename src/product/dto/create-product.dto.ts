@@ -75,6 +75,11 @@ export class CreateProductDto {
   @IsBoolean()
   isActive?: boolean;
 
+  @ApiPropertyOptional({ example: false })
+  @IsOptional()
+  @IsBoolean()
+  isHit?: boolean;
+
   @ApiPropertyOptional({ type: [CreateProductImageDto] })
   @IsOptional()
   @IsArray()

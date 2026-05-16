@@ -118,6 +118,10 @@ export class ProductService {
       };
     }
 
+    if (query.isHit === true) {
+      where.isHit = true;
+    }
+
     let orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: 'desc' };
     if (query.sort === 'price_asc') orderBy = { price: 'asc' };
     if (query.sort === 'price_desc') orderBy = { price: 'desc' };
@@ -290,6 +294,17 @@ export class ProductService {
     });
     await this.invalidateProductCache();
     return withStatusLabel(inventory);
+  }
+
+  async toggleHit(id: number, isHit: boolean) {
+    await this.findOne(id);
+    const updated = await this.prisma.product.update({
+      where: { id },
+      data: { isHit },
+      select: { id: true, isHit: true },
+    });
+    await this.invalidateProductCache();
+    return updated;
   }
 
   async addImage(

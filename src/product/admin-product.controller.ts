@@ -222,6 +222,18 @@ export class AdminProductController {
     return this.productService.update(id, dto);
   }
 
+  @Patch(':id/hit')
+  @ApiOperation({ summary: 'Mark / unmark product as hit' })
+  @ApiParam({ name: 'id', example: 1 })
+  @ApiBody({ schema: { type: 'object', properties: { isHit: { type: 'boolean' } }, required: ['isHit'] } })
+  @ApiNotFoundResponse({ description: 'Product not found' })
+  toggleHit(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('isHit') isHit: boolean,
+  ) {
+    return this.productService.toggleHit(id, isHit);
+  }
+
   @Get(':id/inventory')
   @ApiOperation({ summary: 'Get inventory by product id' })
   @ApiParam({ name: 'id', example: 1 })

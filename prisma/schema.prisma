@@ -39,6 +39,7 @@ model Product {
   description String?
   price       Decimal       @db.Decimal(12, 2)
   isActive    Boolean       @default(true)
+  isHit       Boolean       @default(false)
   categoryId  Int
   unitId      Int
   brandId     Int?
@@ -56,6 +57,7 @@ model Product {
   @@index([unitId])
   @@index([brandId])
   @@index([isActive])
+  @@index([isHit])
   @@index([price])
 }
 

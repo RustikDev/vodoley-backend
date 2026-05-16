@@ -62,6 +62,14 @@ export class ProductQueryDto {
   )
   @IsBoolean()
   @ApiPropertyOptional({ example: true })
+  isHit?: boolean;
+
+  @IsOptional()
+  @Transform(({ value }) =>
+    value === undefined ? undefined : value === 'true' || value === true,
+  )
+  @IsBoolean()
+  @ApiPropertyOptional({ example: true })
   includeChildren?: boolean;
 
   @IsOptional()
