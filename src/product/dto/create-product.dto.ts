@@ -65,6 +65,11 @@ export class CreateProductDto {
   @IsInt()
   unitId: number;
 
+  @ApiPropertyOptional({ example: 1 })
+  @IsOptional()
+  @IsInt()
+  brandId?: number;
+
   @ApiPropertyOptional({ example: true })
   @IsOptional()
   @IsBoolean()

@@ -4,7 +4,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductQueryDto } from './dto/product-query.dto';
 import { Prisma } from 'src/generated/prisma/client';
-import { UpdateInventoryDto } from './dto/inventory.dto';
+import { UpdateInventoryDto, withStatusLabel } from './dto/inventory.dto';
 import { InMemoryCacheService } from '../common/cache/in-memory-cache.service';
 import { Inject } from '@nestjs/common';
 import { STORAGE_SERVICE, StorageService } from '../storage/storage.service';
@@ -16,6 +16,15 @@ export class ProductService {
     private readonly cache: InMemoryCacheService,
     @Inject(STORAGE_SERVICE) private readonly storage: StorageService,
   ) {}
+
+  private formatProduct<T extends { inventory?: { status: string } | null }>(product: T): T {
+    if (!product.inventory) return product;
+    return { ...product, inventory: withStatusLabel(product.inventory as any) };
+  }
+
+  private formatProducts<T extends { inventory?: { status: string } | null }>(products: T[]): T[] {
+    return products.map((p) => this.formatProduct(p));
+  }
 
   private async invalidateProductCache() {
     await this.cache.clearByPrefix('products:list:');
@@ -41,11 +50,12 @@ export class ProductService {
         images: { orderBy: { sortOrder: 'asc' } },
         unit: true,
         category: true,
+        brand: { select: { id: true, name: true, slug: true, logo: true } },
         inventory: true,
       },
     });
     await this.invalidateProductCache();
-    return created;
+    return this.formatProduct(created);
   }
 
   async findAll(query: ProductQueryDto) {
@@ -88,6 +98,10 @@ export class ProductService {
       where.unitId = query.unitId;
     }
 
+    if (query.brandId) {
+      where.brandId = query.brandId;
+    }
+
     if (query.minPrice !== undefined || query.maxPrice !== undefined) {
       const price: Prisma.DecimalFilter = {};
       if (query.minPrice !== undefined) price.gte = query.minPrice;
@@ -119,13 +133,14 @@ export class ProductService {
           images: { orderBy: { sortOrder: 'asc' } },
           unit: true,
           category: true,
+          brand: { select: { id: true, name: true, slug: true, logo: true } },
           inventory: true,
         },
       }),
       this.prisma.product.count({ where }),
     ]);
 
-    const result = { items, total, page, pageSize };
+    const result = { items: this.formatProducts(items), total, page, pageSize };
     await this.cache.set(cacheKey, result, 30_000);
     return result;
   }
@@ -154,15 +169,17 @@ export class ProductService {
   }
 
   async findAllAdmin() {
-    return await this.prisma.product.findMany({
+    const products = await this.prisma.product.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
         images: { orderBy: { sortOrder: 'asc' } },
         unit: true,
         category: true,
+        brand: { select: { id: true, name: true, slug: true, logo: true } },
         inventory: true,
       },
     });
+    return this.formatProducts(products);
   }
 
   async findOne(id: number) {
@@ -172,12 +189,13 @@ export class ProductService {
         images: { orderBy: { sortOrder: 'asc' } },
         unit: true,
         category: true,
+        brand: { select: { id: true, name: true, slug: true, logo: true } },
         inventory: true,
       },
     });
     if (!product)
       throw new NotFoundException(`Product with id ${id} not found`);
-    return product;
+    return this.formatProduct(product);
   }
 
   async getRecommendations(id: number) {
@@ -188,7 +206,7 @@ export class ProductService {
     if (!product)
       throw new NotFoundException(`Product with id ${id} not found`);
 
-    return await this.prisma.product.findMany({
+    const recs = await this.prisma.product.findMany({
       where: {
         isActive: true,
         categoryId: product.categoryId,
@@ -200,9 +218,11 @@ export class ProductService {
         images: { orderBy: { sortOrder: 'asc' } },
         unit: true,
         category: true,
+        brand: { select: { id: true, name: true, slug: true, logo: true } },
         inventory: true,
       },
     });
+    return this.formatProducts(recs);
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
@@ -235,12 +255,13 @@ export class ProductService {
           images: { orderBy: { sortOrder: 'asc' } },
           unit: true,
           category: true,
+          brand: { select: { id: true, name: true, slug: true, logo: true } },
           inventory: true,
         },
       });
     });
     await this.invalidateProductCache();
-    return updated;
+    return this.formatProduct(updated);
   }
 
   async remove(id: number) {
@@ -256,7 +277,8 @@ export class ProductService {
 
   async getInventory(id: number) {
     await this.findOne(id);
-    return this.prisma.inventory.findUnique({ where: { productId: id } });
+    const inv = await this.prisma.inventory.findUnique({ where: { productId: id } });
+    return withStatusLabel(inv);
   }
 
   async updateInventory(id: number, dto: UpdateInventoryDto) {
@@ -267,7 +289,7 @@ export class ProductService {
       update: dto,
     });
     await this.invalidateProductCache();
-    return inventory;
+    return withStatusLabel(inventory);
   }
 
   async addImage(

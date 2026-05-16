@@ -9,6 +9,7 @@ import {
 } from '@nestjs/swagger';
 import { ProductService } from './product.service';
 import { ProductQueryDto } from './dto/product-query.dto';
+import { INVENTORY_STATUS_LABELS } from './dto/inventory.dto';
 
 @ApiTags('Catalog')
 @Controller('products')
@@ -85,5 +86,24 @@ export class ProductController {
   @ApiParam({ name: 'id', example: 1 })
   recommendations(@Param('id', ParseIntPipe) id: number) {
     return this.productService.getRecommendations(id);
+  }
+}
+
+@ApiTags('Catalog')
+@Controller('inventory-statuses')
+export class InventoryStatusController {
+  @Get()
+  @ApiOperation({ summary: 'List inventory statuses with Russian labels' })
+  @ApiOkResponse({
+    schema: {
+      example: [
+        { value: 'IN_STOCK', label: 'В наличии' },
+        { value: 'OUT_OF_STOCK', label: 'Нет в наличии' },
+        { value: 'ON_ORDER', label: 'Под заказ' },
+      ],
+    },
+  })
+  findAll() {
+    return Object.entries(INVENTORY_STATUS_LABELS).map(([value, label]) => ({ value, label }));
   }
 }

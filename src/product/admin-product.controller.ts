@@ -62,6 +62,7 @@ export class AdminProductController {
         price: { type: 'number', example: 350.5 },
         categoryId: { type: 'number', example: 1 },
         unitId: { type: 'number', example: 1 },
+        brandId: { type: 'number', example: 1 },
         isActive: { type: 'boolean', example: true },
         inventoryQuantity: { type: 'number', example: 120 },
         inventoryStatus: {
@@ -121,6 +122,7 @@ export class AdminProductController {
       price: body.price !== undefined ? Number(body.price) : undefined,
       categoryId: body.categoryId ? Number(body.categoryId) : undefined,
       unitId: body.unitId ? Number(body.unitId) : undefined,
+      brandId: body.brandId ? Number(body.brandId) : undefined,
       isActive: toBool(body.isActive),
       inventory:
         body.inventoryQuantity !== undefined || body.inventoryStatus

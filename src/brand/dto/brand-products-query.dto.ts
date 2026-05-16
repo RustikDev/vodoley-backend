@@ -1,16 +1,8 @@
 import { Transform, Type } from 'class-transformer';
-import {
-  IsBoolean,
-  IsIn,
-  IsInt,
-  IsNumber,
-  IsOptional,
-  IsString,
-  Min,
-} from 'class-validator';
+import { IsBoolean, IsIn, IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
-export class ProductQueryDto {
+export class BrandProductsQueryDto {
   @IsOptional()
   @IsString()
   @ApiPropertyOptional({ example: 'цемент' })
@@ -21,18 +13,6 @@ export class ProductQueryDto {
   @IsInt()
   @ApiPropertyOptional({ example: 1 })
   categoryId?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @ApiPropertyOptional({ example: 1 })
-  unitId?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @ApiPropertyOptional({ example: 1 })
-  brandId?: number;
 
   @IsOptional()
   @Type(() => Number)
@@ -55,14 +35,6 @@ export class ProductQueryDto {
   @IsBoolean()
   @ApiPropertyOptional({ example: true })
   inStock?: boolean;
-
-  @IsOptional()
-  @Transform(({ value }) =>
-    value === undefined ? undefined : value === 'true' || value === true,
-  )
-  @IsBoolean()
-  @ApiPropertyOptional({ example: true })
-  includeChildren?: boolean;
 
   @IsOptional()
   @IsIn(['price_asc', 'price_desc', 'newest'])

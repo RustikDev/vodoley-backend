@@ -14,6 +14,24 @@ enum InventoryStatus {
   ON_ORDER
 }
 
+model Brand {
+  id          Int       @id @default(autoincrement())
+  name        String
+  slug        String    @unique
+  description String?   @db.Text
+  logo        String?
+  website     String?
+  isActive    Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products    Product[]
+
+  @@index([isActive])
+  @@index([slug])
+}
+
 model Product {
   id          Int           @id @default(autoincrement())
   name        String
@@ -23,17 +41,20 @@ model Product {
   isActive    Boolean       @default(true)
   categoryId  Int
   unitId      Int
+  brandId     Int?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
   category    Category      @relation(fields: [categoryId], references: [id])
   unit        Unit          @relation(fields: [unitId], references: [id])
+  brand       Brand?        @relation(fields: [brandId], references: [id])
   images      ProductImage[]
   inventory   Inventory?
 
   @@index([name])
   @@index([categoryId])
   @@index([unitId])
+  @@index([brandId])
   @@index([isActive])
   @@index([price])
 }

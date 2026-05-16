@@ -9,6 +9,7 @@ import { CategoryModule } from './category/category.module';
 import { UnitModule } from './unit/unit.module';
 import { AuthModule } from './auth/auth.module';
 import { EstimateModule } from './estimate/estimate.module';
+import { BrandModule } from './brand/brand.module';
 import { CacheModule } from './common/cache/cache.module';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
@@ -25,6 +26,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
     UnitModule,
     AuthModule,
     EstimateModule,
+    BrandModule,
     CacheModule,
     ThrottlerModule.forRoot([
       {
