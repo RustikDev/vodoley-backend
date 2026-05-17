@@ -1,6 +1,7 @@
-import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsIn, IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsEnum, IsIn, IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { InventoryStatus } from '../../product/dto/inventory.dto';
 
 export class BrandProductsQueryDto {
   @IsOptional()
@@ -29,12 +30,9 @@ export class BrandProductsQueryDto {
   maxPrice?: number;
 
   @IsOptional()
-  @Transform(({ value }) =>
-    value === undefined ? undefined : value === 'true' || value === true,
-  )
-  @IsBoolean()
-  @ApiPropertyOptional({ example: true })
-  inStock?: boolean;
+  @IsEnum(InventoryStatus)
+  @ApiPropertyOptional({ enum: InventoryStatus, example: InventoryStatus.IN_STOCK })
+  status?: InventoryStatus;
 
   @IsOptional()
   @IsIn(['price_asc', 'price_desc', 'newest'])

@@ -92,7 +92,7 @@ export type ProductListQuery = {
   unitId?: number;
   minPrice?: number;
   maxPrice?: number;
-  inStock?: boolean;
+  status?: InventoryStatus;
   sort?: ProductSort;
   page?: number;
   pageSize?: number;

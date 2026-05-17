@@ -182,8 +182,8 @@ export class BrandService {
       where.price = price;
     }
 
-    if (query.inStock === true) {
-      where.inventory = { is: { quantity: { gt: 0 }, status: 'IN_STOCK' } };
+    if (query.status !== undefined) {
+      where.inventory = { is: { status: query.status } };
     }
 
     let orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: 'desc' };

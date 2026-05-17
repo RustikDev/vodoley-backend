@@ -109,13 +109,8 @@ export class ProductService {
       where.price = price;
     }
 
-    if (query.inStock === true) {
-      where.inventory = {
-        is: {
-          quantity: { gt: 0 },
-          status: 'IN_STOCK',
-        },
-      };
+    if (query.status !== undefined) {
+      where.inventory = { is: { status: query.status } };
     }
 
     if (query.isHit === true) {
