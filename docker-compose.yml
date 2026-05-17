@@ -46,10 +46,13 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: ${REDIS_URL}
+      GOOGLE_CREDENTIALS_PATH: ${GOOGLE_CREDENTIALS_PATH}
+      GOOGLE_SHEET_ID: ${GOOGLE_SHEET_ID}
     ports:
       - "3000:3000"
     volumes:
       - ./uploads:/app/uploads
+      - ./secrets:/app/secrets
     depends_on:
       - db
       - redis
